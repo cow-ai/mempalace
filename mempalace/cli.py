@@ -628,6 +628,25 @@ def cmd_migrate(args):
     )
 
 
+def cmd_add(args):
+    """Add a single drawer to the palace directly from CLI."""
+    from .mcp_server import tool_add_drawer
+
+    result = tool_add_drawer(
+        wing=args.wing,
+        room=args.room,
+        content=args.content,
+        source_file=args.source,
+        added_by=args.added_by,
+    )
+
+    if result.get("success"):
+        print(f"✅ Filed: {result.get('drawer_id')} → {args.wing}/{args.room}")
+    else:
+        print(f"❌ Failed: {result.get('error', 'unknown error')}")
+        sys.exit(1)
+
+
 def cmd_status(args):
     from .miner import status
 
@@ -1091,6 +1110,14 @@ def main():
         help="A .jsonl transcript file, or a directory to scan recursively",
     )
 
+    # add
+    p_add = sub.add_parser("add", help="Add a single drawer to the palace")
+    p_add.add_argument("--wing", required=True, help="Wing name (project)")
+    p_add.add_argument("--room", required=True, help="Room name (aspect)")
+    p_add.add_argument("--content", required=True, help="Content to store")
+    p_add.add_argument("--source", default=None, help="Source file reference")
+    p_add.add_argument("--added-by", default="cli", help="Who is filing this")
+
     # search
     p_search = sub.add_parser("search", help="Find anything, exact words")
     p_search.add_argument("query", help="What to search for")
@@ -1286,6 +1313,7 @@ def main():
         "repair-status": cmd_repair_status,
         "migrate": cmd_migrate,
         "status": cmd_status,
+        "add": cmd_add,
     }
     dispatch[args.command](args)
 
